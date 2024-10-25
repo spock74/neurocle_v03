@@ -1,133 +1,147 @@
----
-title: neurocle_v02
-app_file: frontend/gradio_app.py
-sdk: gradio
-sdk_version: 5.3.0
----
+# AI Assistant for Cephalgia, Headaches, and Migraines
 
-# NeuroCurso AI Assistant
-
-## Project Overview
-
-NeuroCurso AI Assistant is a FastAPI-based application that leverages OpenAI's GPT models to create an intelligent assistant for neurology education. The project integrates various components including a FastAPI backend, OpenAI API integration, vector stores for efficient data retrieval, and a Redis cache for improved performance.
+This project is a comprehensive AI-powered assistant designed to help medical professionals and researchers in the field of cephalgia, headaches, and migraines. It uses OpenAI's GPT models and various tools to provide information, answer questions, and process audio inputs.
 
 ## Project Structure
 
-ai-powered-assistant-api/
+- `app/`: Main application directory
+  - `api/`: API endpoints
+  - `core/`: Core functionality and settings
+  - `services/`: Various services (OpenAI, Audio, etc.)
+- `frontend/`: Gradio interface
+- `ui_config_pt_br.yaml`: UI configuration file in Brazilian Portuguese
 
-## Key Components
+## Setup
 
-```text
-ai-powered-assistant-api/
-├── app/
-│   ├── api/
-│   │   └── api_v1/
-│   │       ├── assistants_schema.py
-│   │       └── endpoints/
-│   │           └── assistants.py
-│   ├── core/
-│   │   ├── asst/
-│   │   │   ├── a0_README.md
-│   │   │   ├── a0_cefaleias_v01.py
-│   │   │   ├── crud.py
-│   │   │   ├── prompt_cefaleias_v02.py
-│   │   │   └── retrieval_v01.py
-│   │   ├── openai_utils/
-│   │   │   └── create_client.py
-│   │   └── settings/
-│   │       └── conf.py
-│   ├── services/
-│   │   └── assistant_service.py
-│   └── main.py
-├── requirements.txt
-└── README.md
-```
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Set up environment variables:
+   - `OPENAI_NEUROCURSO_API_KEY`: Your OpenAI API key
+4. Run the FastAPI backend: `uvicorn app.main:app --reload`
+5. Run the Gradio frontend: `python frontend/gradio_app.py`
 
-1. **FastAPI Backend**: The main application is built using FastAPI, providing a robust and efficient API framework.
+## Features
 
-2. **OpenAI Integration**: The project integrates with OpenAI's GPT models to power the AI assistant functionality.
+The application provides a Gradio interface with several tabs, each offering different functionalities:
 
-3. **Vector Stores**: Implemented for efficient storage and retrieval of embeddings, enhancing the assistant's knowledge base.
+### 1. Create Assistant
 
-4. **Redis Cache**: Used for caching frequently accessed data to improve performance.
+This tab allows you to create a new AI assistant.
 
-5. **PostgreSQL Database**: Stores user data, items, and other persistent information.
+- Fill in the required fields:
+  - Name
+  - Model (select from dropdown)
+  - Instructions/Prompt
+  - Description
+  - User ID
+- Adjust Temperature and Top P values if needed
+- Click "Create Assistant" to generate a new assistant
 
-6. **AstraDB Integration**: Utilized for additional data storage and retrieval capabilities.
+### 2. Send Question
 
-## Setup and Installation
+Use this tab to send questions to an existing assistant.
 
-1. Clone the repository:
+- Provide the Assistant ID
+- Enter your question
+- Specify User ID and Thread ID (if applicable)
+- Click "Send" to get a response
 
-   ```
-   git clone https://github.com/your-username/neurocurso-ai-assistant.git
-   cd neurocurso-ai-assistant
-   ```
+### 3. Audio Question
 
-2. Set up a virtual environment:
+This tab enables you to ask questions using voice input.
 
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
+- Provide the Assistant ID
+- Record your question using the microphone
+- The recorded audio will be transcribed and sent to the assistant
+- The response will be displayed as text and also converted to speech
 
-3. Install dependencies:
+### 4. Create/Update Vector Store
 
-   ```
-   pip install -r requirements.txt
-   ```
+This tab is used to manage the vector store for document retrieval.
 
-4. Set up environment variables:
-   Create a `.env` file in the root directory and add the following:
+- Enter the Assistant ID
+- Upload files or provide file paths
+- Click "Create/Update" to process the documents
 
-   ```
-   OPENAI_NEUROCURSO_API_KEY=your_openai_api_key
-   OPENAI_NEUROCURSO_ORGANIZATION_ID=your_openai_org_id
-   DATABASE_URL=postgresql://username:password@localhost/neurocurso
-   REDIS_HOST=localhost
-   REDIS_PORT=6379
-   ```
+### 5. List Assistants
 
-5. Set up the database:
+Use this tab to view all created assistants.
 
-   ```
-   python app/core/db.py create
-   ```
+- Click "List" to see all available assistants
 
-6. Run the application:
-   ```
-   uvicorn app.main:app --reload
-   ```
+## API Endpoints
 
-## Usage
+The backend provides several API endpoints:
 
-The application exposes several API endpoints for interacting with the AI assistant, managing users, and handling vector stores. Refer to the API documentation (available at `/docs` when running the app) for detailed usage instructions.
+python:app/main.py
+startLine: 40
+endLine: 45
+
+
+These endpoints handle various functionalities such as managing assistants, vector stores, threads, questions, and audio processing.
+
+## Configuration
+
+The project uses a YAML configuration file (`ui_config_pt_br.yaml`) for UI labels and settings. You can modify this file to change the language or adjust UI elements. The configuration includes settings for models, API base URL, and various UI labels.
+
+## Audio Processing
+
+The application supports audio input and output. It uses OpenAI's Whisper model for speech-to-text and a text-to-speech service for generating audio responses.
+
+
+python:app/api/api_v1/endpoints/question_audio.py
+startLine: 16
+endLine: 36
+
+## Assistant Creation and Management
+
+Assistants are created using OpenAI's API. The project includes functionality to create, retrieve, and manage assistants:
+
+
+## Vector Store and File Search
+
+The project implements vector store functionality for efficient document retrieval. It uses OpenAI's file search capabilities:
+
+
+
+## Prompt Engineering
+
+The assistant uses carefully crafted prompts to ensure accurate and relevant responses:
+
+
+python:app/core/asst/prompt_cefaleias_v02.py
+startLine: 8
+endLine: 23
+
+
+## Tips for Use
+
+1. When creating an assistant, provide clear and specific instructions for best results.
+2. For audio questions, ensure you're in a quiet environment for accurate transcription.
+3. When using the vector store, organize your documents well for efficient retrieval.
+4. Use specific and well-formulated questions to get the most accurate responses.
+5. Regularly update the vector store with new relevant documents to keep the assistant's knowledge current.
+
+## Limitations
+
+- The assistant's knowledge is based on its training data and the documents you provide.
+- Audio transcription and text-to-speech quality may vary depending on input quality and accent.
+- The system is designed for medical professionals and may not be suitable for general public use without proper context.
+
+## Future Improvements
+
+- Implement user authentication and session management for personalized experiences.
+- Enhance error handling and provide more detailed feedback to users.
+- Optimize vector store for faster document retrieval and more accurate context matching.
+- Implement a feedback system for continuous improvement of the assistant's responses.
+- Expand language support beyond Brazilian Portuguese.
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Contributions to this project are welcome. Please ensure you follow the coding standards and submit pull requests for any new features or bug fixes.
 
 ## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+[Specify your license here]
 
-## Acknowledgments
-
-- OpenAI for providing the GPT models
-- FastAPI team for the excellent web framework
-
----
-
-### Tradução para o Português: Ao examinar os textos fornecidos dos documentos carregados, os argumentos e conclusões são os seguintes: 
-
-1. **Modelos de Linguagem Ampla em Educação**: - A integração de Modelos de Linguagem Ampla (LLMs), especialmente por meio de métodos como a engenharia de prompts, mostra um potencial significativo no planejamento de trajetórias de aprendizagem personalizadas (PLPP). Experimentos demonstram que os LLMs podem melhorar a precisão, satisfação do usuário e qualidade das trajetórias educacionais, com o GPT-4 superando o LLama-2-70B. Os benefícios a longo prazo são observados em melhores pontuações em testes e taxas de retenção, sugerindo que os LLMs têm o potencial de revolucionar a educação personalizada, tornando-a mais adaptativa e interativa . 
-
-1. **Modelos de Linguagem Bidirecional**: - A técnica de Prompt Autoregressivo Sequencial (SAP) aprimora modelos bidirecionais como o mT5, possibilitando que eles realizem aprendizagem com poucos exemplos e nenhuma exemplo melhor do que alguns modelos unidirecionais, apesar de usar menos parâmetros. Os objetivos de pré-treinamento bidirecional contribuem para melhorias de desempenho, indicando a força das arquiteturas bidirecionais . 
-   
-1. **Geração de Código com LLMs**: - Modelos de geração de código, como Codex, exibem preconceitos herdados de seus dados de treinamento, potencialmente resultando em saídas que reforçam estereótipos. Os modelos podem produzir código inseguro, destacando a necessidade de supervisão humana cuidadosa. À medida que essas tecnologias evoluem, suas implicações econômicas, de segurança e de preconceito podem crescer, exigindo avaliações de impacto mais detalhadas e mitigações . 
-
-1. **IA Generativa no Ensino Superior**: - A IA generativa, como o ChatGPT, introduz desafios e oportunidades no ensino superior. Embora a IA possa ajudar a economizar tempo e melhorar as experiências de aprendizagem, persistem questões relacionadas à integridade acadêmica, plágio e dependência excessiva da tecnologia. Educadores são incentivados a envolver os alunos de forma transparente com a IA, adaptando currículos para incorporar a IA de forma responsável . ### Conclusão No geral, enquanto a integração da IA e dos LLMs em ambientes educacionais e de codificação oferece vários avanços, esses sistemas também apresentam desafios que requerem consideração cuidadosa. A eficácia dos LLMs na aprendizagem personalizada, as forças dos modelos bidirecionais, preocupações com preconceito e segurança na geração de código, e o papel evolutivo da IA na academia representam áreas críticas para pesquisa e desenvolvimento contínuos. O equilíbrio entre aproveitar as vantagens da IA e mitigar seus riscos será crucial no futuro . ### Post de Engajamento para Rede Social: 🚀✨ A revolução da educação personalizada está a caminho com os Modelos de Linguagem Ampla! Com potencial para transformar o aprendizado, os LLMs estão aprimorando trajetórias educacionais, personalizando experiências e melhorando resultados, tudo com a promessa de um futuro mais adaptativo 📚🔍. No entanto, enquanto celebramos esses avanços, nunca podemos nos esquecer dos desafios como preconceitos, segurança no código e integridade acadêmica 🤔🌐. Vamos equilibrar inovação com responsabilidade! Junte-se à conversa e compartilhe suas perspectivas sobre o impacto da IA na educação e além! #EducaçãoDoFuturo #InovaçãoResponsável #AIRevolução 💡🧑‍🎓 ---
+For any issues, suggestions, or questions, please open an issue in the project repository or contact the maintainers.
