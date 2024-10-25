@@ -1,0 +1,37 @@
+ui:
+  labels:
+    main_title: "# T-Rex2 Assistant Demo"
+    create_assistant:
+      title: "Create Assistant"
+      name: "Name"
+      model: "Model"
+      instructions: "Instructions"
+      description: "Description"
+      user_id: "User ID"
+      create_button: "Create Assistant"
+      clear_button: "Clear Form"
+      result: "Assistant Creation Result"
+    send_question:
+      title: "Send Question"
+      assistant_id: "Assistant ID"
+      question: "Question"
+      user_id: "User ID"
+      thread_id: "Thread ID"
+      send_button: "Send Question"
+      clear_button: "Clear Form"
+      result: "Question Response"
+    create_vector_store:
+      title: "Create Vector Store"
+      assistant_id: "Assistant ID"
+      file_paths: "File Paths (comma-separated)"
+      create_button: "Create Vector Store"
+      clear_button: "Clear Form"
+      result: "Vector Store Creation Result"
+    list_assistants:
+      title: "List Assistants"
+      list_button: "List Assistants"
+      result: "Assistants List"
+  models:
+    - "gpt-4o-mini"
+    - "gpt-4o"
+    - "gpt-3.5-turbo"

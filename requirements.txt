@@ -1,0 +1,86 @@
+setuptools
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+pydantic[email]
+gradio
+torch
+torchvision
+torchaudio
+transformers
+tdqm
+sqlalchemy
+psycopg2-binary
+alembic
+openai
+anthropic
+groq
+Pillow
+pytest
+numpy
+langchain
+langchain_openai
+astrapy
+coloredlogs
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+PyMuPDF #
+#PyMuPDF4LLM <- èstudar isso:: CONVERSÃO DE PDF INTO MARKDO3:
+# https://pymupdf.readthedocs.io/en/latest/pymupdf4llm/index.html
+pyttsx3
+pyPDF2
+# -------------------------------------------------------------------
+# -------------------------------------------------------------------
+docstring_parser
+datamodel-code-generator
+deepdiff
+termcolor
+python-dotenv
+rich
+jsonref
+# -------------------------------------
+pinecone
+# -------------------------------------
+
+
+
+
+# -------------------------------------
+# 
+# -------------------------------------
+clize
+sigtools
+pandas
+matplotlib
+configparser
+# -------------------------------------
+
+# ------------------------------------------------------
+# 
+# Motivo: para fazer upload de arquivos no Google Drive
+# e poder usá-los no n8n
+# ------------------------------------------------------
+# Project name: neurocle
+# Project number: 1019304276484
+# Project ID: neuracle
+# ------------------------------------------------------
+
+
+# Persisting the /home/node/.n8n directory even when using alternate databases is the recommended best practice, but not explicitly required. The encryption key can be provided using the N8N_ENCRYPTION_KEY environment variable.
+
+
+# docker volume create n8n_data
+
+# docker run -it --rm \
+#  --name n8n \
+#  -p 5678:5678 \
+#  -e DB_TYPE=postgresdb \
+#  -e DB_POSTGRESDB_DATABASE=<POSTGRES_DATABASE> \
+#  -e DB_POSTGRESDB_HOST=<POSTGRES_HOST> \
+#  -e DB_POSTGRESDB_PORT=<POSTGRES_PORT> \
+#  -e DB_POSTGRESDB_USER=<POSTGRES_USER> \
+#  -e DB_POSTGRESDB_SCHEMA=<POSTGRES_SCHEMA> \
+#  -e DB_POSTGRESDB_PASSWORD=<POSTGRES_PASSWORD> \
+#  -v n8n_data:/home/node/.n8n \
+#  docker.n8n.io/n8nio/n8n
