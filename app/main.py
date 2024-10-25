@@ -11,12 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.settings.conf import logger
 from app.db.vector_store_db import init_db  # Add this line
 from app.db.vector_store_db import init_question_log_db
+from app.api.api_v1.endpoints import question_audio
 
-
-# Configuração do logging
-from app.core.settings.conf import logger
 
 app = FastAPI()
+
 
 init_db()  # Add this line
 init_question_log_db()
@@ -42,6 +41,7 @@ app.include_router(assistants_router, prefix="/api/v1", tags=["Assistants"])
 app.include_router(vector_store_router, prefix="/api/v1", tags=["Vector Stores"])
 app.include_router(thread_router, prefix="/api/v1", tags=["Theads"])
 app.include_router(question_router, prefix="/api/v1", tags=["Questions"])
+app.include_router(question_audio.router, prefix="/api/v1", tags=["Audio Questions"])
 app.include_router(users_router, prefix="/api/v1", tags=["Users"])
 # app.include_router(items_router, prefix="/items", tags=["items"])
 
