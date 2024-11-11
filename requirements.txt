@@ -5,6 +5,7 @@ pydantic
 pydantic-settings
 pydantic[email]
 gradio
+llama-index
 torch
 torchvision
 torchaudio
@@ -21,8 +22,10 @@ pytest
 numpy
 langchain
 langchain_openai
+langchain-community
 astrapy
 coloredlogs
+tonic-validate
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
 PyMuPDF #
