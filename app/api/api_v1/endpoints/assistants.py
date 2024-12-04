@@ -74,20 +74,36 @@ async def get_assistant_route_(
         raise HTTPException(status_code=404, detail=str(e))
 
 ###*******
+#
+
 @router.get("/assistants", response_model=List[AssistantResponse])
 async def list_assistants_route(
-    limit: int = Query(default=99, ge=1, le=100),
+    limit: int = Query(default=20, ge=1, le=99),
     after: str = Query(default=None),
     client: OpenAI = Depends(get_openai_client)
 ):
     try:
         logger.info(f"Attempting to list assistants with limit: {limit}, after: {after}")
-        assistants = list_assistants()
+        assistants = list_assistants(limit=limit, after=after)
         logger.info(f"Successfully retrieved {len(assistants)} assistants")
         return assistants
     except Exception as e:
         logger.error(f"Error listing assistants: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error listing assistants: {str(e)}")
+# @router.get("/assistants", response_model=List[AssistantResponse])
+# async def list_assistants_route(
+#     limit: int = Query(default=99, ge=1, le=100),
+#     after: str = Query(default=None),
+#     client: OpenAI = Depends(get_openai_client)
+# ):
+#     try:
+#         logger.info(f"Attempting to list assistants with limit: {limit}, after: {after}")
+#         assistants = list_assistants()
+#         logger.info(f"Successfully retrieved {len(assistants)} assistants")
+#         return assistants
+#     except Exception as e:
+#         logger.error(f"Error listing assistants: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Error listing assistants: {str(e)}")
 # @router.get("/assistants", response_model=List[Dict[str, str]])
 # async def list_assistants_route(
 #     limit: int = Query(default=20, ge=1, le=100),

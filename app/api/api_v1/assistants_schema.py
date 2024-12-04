@@ -49,7 +49,12 @@ class AssistantUpdate(BaseModel):
     temperature: Optional[float] = None
     top_p: Optional[float] = None
     
-    
+
+
+class AssistantListParams(BaseModel):
+    limit: int = Field(default=20, ge=1, le=99, description="Number of assistants to return")
+    after: Optional[str] = None
+        
     
 class QuestionRequest(BaseModel):
     content: str = ""

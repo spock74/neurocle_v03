@@ -55,10 +55,11 @@ def delete_assistant(assistant_id: str):
         logger.error(f"Failed to delete assistant: {e}")
         raise
 
-def list_assistants():
+
+def list_assistants(limit: int = 20, after: str = None):
     client = create_client()
     try:
-        assistants = client.beta.assistants.list()
+        assistants = client.beta.assistants.list(limit=limit, after=after)
         logger.info(f"::ZEHN:: Retrieved {len(assistants.data)} assistants")
         return [
             AssistantResponse(
