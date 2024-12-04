@@ -148,7 +148,7 @@ async def send_question(client: OpenAI, question: QuestionRequest) -> Dict[str, 
 
 
 # **********    
-async def list_assistant_ids(client: OpenAI, limit: int = 20, after: str = None):
+async def list_assistant_ids(client: OpenAI, limit: int = 99, after: str = None):
     try:
         logger.info(f"Calling OpenAI API to list assistants with limit: {limit}, after: {after}")
         response = client.beta.assistants.list(limit=limit, after=after)
@@ -166,7 +166,7 @@ async def list_assistant_ids(client: OpenAI, limit: int = 20, after: str = None)
         logger.error(f"Error details: {e.__dict__}")
         raise
 # -------------------    
-async def list_assistant_info(client: OpenAI, limit: int = 20, after: str = None):
+async def list_assistant_info(client: OpenAI, limit: int = 99, after: str = None):
     try:
         logger.info(f"Calling OpenAI API to list assistants with limit: {limit}, after: {after}")
         params = {"limit": limit}

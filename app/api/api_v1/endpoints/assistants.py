@@ -76,7 +76,7 @@ async def get_assistant_route_(
 ###*******
 @router.get("/assistants", response_model=List[AssistantResponse])
 async def list_assistants_route(
-    limit: int = Query(default=20, ge=1, le=100),
+    limit: int = Query(default=99, ge=1, le=100),
     after: str = Query(default=None),
     client: OpenAI = Depends(get_openai_client)
 ):
