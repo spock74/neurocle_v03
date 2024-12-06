@@ -20,7 +20,7 @@ class AssistantCreate(BaseModel):
 
 class AssistantResponse(BaseModel):
     id: str
-    object: str = "assistant"
+    # object: str = "assistant"
     created_at: int
     name: str
     description: Optional[str] = None

@@ -19,36 +19,38 @@ from app.core.settings.conf import logger
 from typing import List, Dict
 from app.core.asst.crud import list_assistants
 
+import json
+import sqlite3
+
 router = APIRouter()
 
 #******************************
 # app/services/database_service.py
 
-import sqlite3
-DATABASE_URL = "user_assistants.db"
+# DATABASE_URL = "user_assistants.db"
 
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE_URL)
-    conn.row_factory = sqlite3.Row
-    return conn
+# def get_db_connection():
+#     conn = sqlite3.connect(DATABASE_URL)
+#     conn.row_factory = sqlite3.Row
+#     return conn
 
-def init_highlighted_table():
-    conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS highlighted
-                    (user_id TEXT, metadata TEXT, assistant_id TEXT)''')
-    conn.commit()
-    conn.close()
+# def init_highlighted_table():
+#     conn = get_db_connection()
+#     conn.execute('''CREATE TABLE IF NOT EXISTS highlighted
+#                     (user_id TEXT, metadata TEXT, assistant_id TEXT)''')
+#     conn.commit()
+#     conn.close()
 
-def insert_highlighted_data(user_id, metadata, assistant_id):
-    conn = get_db_connection()
-    conn.execute("CREATE TABLE IF NOT EXISTS highlighted (id INTEGER PRIMARY KEY, user_id TEXT, metadata TEXT, assistant_id TEXT)")
+# def insert_highlighted_data(user_id, metadata, assistant_id):
+#     conn = get_db_connection()
+#     conn.execute("CREATE TABLE IF NOT EXISTS highlighted (id INTEGER PRIMARY KEY, user_id TEXT, metadata TEXT, assistant_id TEXT)")
 
-    conn.execute("INSERT INTO highlighted (user_id, metadata, assistant_id) VALUES (?, ?, ?)",
-                 (user_id, str(metadata), assistant_id))
-    conn.commit()
-    conn.close()
+#     conn.execute("INSERT INTO highlighted (user_id, metadata, assistant_id) VALUES (?, ?, ?)",
+#                  (user_id, str(metadata), assistant_id))
+#     conn.commit()
+#     conn.close()
 #******************************
-
+from app.db.cruds_operations import insert_assistant_in_db
 @router.post("/assistant", response_model=AssistantResponse)
 async def create_assistant_route(
     assistant_create: AssistantCreate,
@@ -56,12 +58,29 @@ async def create_assistant_route(
 ):
     try:
         response = await create_assistant(client, assistant_create)
-        insert_highlighted_data(assistant_create.user_id, assistant_create.metadata, response.id)
+        
+        # Insert the assistant data into the database
+        insert_assistant_in_db(
+            id_asst=response.id,
+            name=response.name,
+            model=response.model,
+            instructions=response.instructions,
+            description=response.description,
+            tools=json.dumps(response.tools),  # Convert tools to JSON string if necessary
+            metadata=json.dumps(response.metadata),  # Convert metadata to JSON string if necessary
+            temperature=response.temperature,
+            top_p=response.top_p,
+            # user_code=respose.user_id,  # Assuming user_id is part of assistant_create
+            # assistant="gfgfgfgfgf"#response.assistant  # Assuming this is the correct field to insert
+        )
+        
         return response
     except Exception as e:
         logger.error(f"Error creating assistant: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error creating assistant: {str(e)}")
-
+    
+    
+    
 
 @router.get("/assistant/{assistant_id}", response_model=AssistantResponse)
 async def get_assistant_route_(

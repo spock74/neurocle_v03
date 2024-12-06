@@ -45,6 +45,7 @@ async def create_assistant(client: OpenAI, assistant_create: AssistantCreate) ->
             top_p=float(assistant_create.top_p) if assistant_create.top_p is not None else None,
         )
         
+        
         response = AssistantResponse(
             id=assistant.id,
             created_at=int(assistant.created_at),
@@ -55,9 +56,10 @@ async def create_assistant(client: OpenAI, assistant_create: AssistantCreate) ->
             tools=assistant.tools,
             metadata=assistant.metadata,
             temperature=float(assistant.temperature) if assistant.temperature is not None else None,
-            top_p=float(assistant.top_p) if assistant.top_p is not None else None
+            top_p=float(assistant.top_p) if assistant.top_p is not None else None,
+            # assistant=assistant.to_json()
         )
-        logger.info(f"::ZEHN:: AssistantResponse created successfully: {response}")
+        logger.info(f"::ZEHN:: ==== AssistantResponse created successfully: {response}")
         return response
     except OpenAIError as oe:
         logger.error(f"OpenAI API error: {str(oe)}")
