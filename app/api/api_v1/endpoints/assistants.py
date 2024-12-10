@@ -16,40 +16,18 @@ from app.api.api_v1.assistants_schema import (
     AssistantCreate, AssistantResponse, AssistantUpdate, 
     VectorStoreCreate, VectorStoreResponse, QuestionRequest, QuestionResponse)
 from app.core.settings.conf import logger
-from typing import List, Dict
+from typing import List, Dict, Any
 from app.core.asst.crud import list_assistants
 
 import json
 import sqlite3
 
+
+
 router = APIRouter()
 
-#******************************
-# app/services/database_service.py
 
-# DATABASE_URL = "user_assistants.db"
 
-# def get_db_connection():
-#     conn = sqlite3.connect(DATABASE_URL)
-#     conn.row_factory = sqlite3.Row
-#     return conn
-
-# def init_highlighted_table():
-#     conn = get_db_connection()
-#     conn.execute('''CREATE TABLE IF NOT EXISTS highlighted
-#                     (user_id TEXT, metadata TEXT, assistant_id TEXT)''')
-#     conn.commit()
-#     conn.close()
-
-# def insert_highlighted_data(user_id, metadata, assistant_id):
-#     conn = get_db_connection()
-#     conn.execute("CREATE TABLE IF NOT EXISTS highlighted (id INTEGER PRIMARY KEY, user_id TEXT, metadata TEXT, assistant_id TEXT)")
-
-#     conn.execute("INSERT INTO highlighted (user_id, metadata, assistant_id) VALUES (?, ?, ?)",
-#                  (user_id, str(metadata), assistant_id))
-#     conn.commit()
-#     conn.close()
-#******************************
 from app.db.cruds_operations import insert_assistant_in_db
 @router.post("/assistant", response_model=AssistantResponse)
 async def create_assistant_route(
@@ -61,17 +39,17 @@ async def create_assistant_route(
         
         # Insert the assistant data into the database
         insert_assistant_in_db(
-            id_asst=response.id,
+            id_asst=response.id_asst,
+            object=response.object,
+            created_at=response.created_at,
             name=response.name,
+            description=response.description,
             model=response.model,
             instructions=response.instructions,
-            description=response.description,
             tools=json.dumps(response.tools),  # Convert tools to JSON string if necessary
             metadata=json.dumps(response.metadata),  # Convert metadata to JSON string if necessary
             temperature=response.temperature,
             top_p=response.top_p,
-            # user_code=respose.user_id,  # Assuming user_id is part of assistant_create
-            # assistant="gfgfgfgfgf"#response.assistant  # Assuming this is the correct field to insert
         )
         
         return response
@@ -109,37 +87,8 @@ async def list_assistants_route(
     except Exception as e:
         logger.error(f"Error listing assistants: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error listing assistants: {str(e)}")
-# @router.get("/assistants", response_model=List[AssistantResponse])
-# async def list_assistants_route(
-#     limit: int = Query(default=99, ge=1, le=100),
-#     after: str = Query(default=None),
-#     client: OpenAI = Depends(get_openai_client)
-# ):
-#     try:
-#         logger.info(f"Attempting to list assistants with limit: {limit}, after: {after}")
-#         assistants = list_assistants()
-#         logger.info(f"Successfully retrieved {len(assistants)} assistants")
-#         return assistants
-#     except Exception as e:
-#         logger.error(f"Error listing assistants: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Error listing assistants: {str(e)}")
-# @router.get("/assistants", response_model=List[Dict[str, str]])
-# async def list_assistants_route(
-#     limit: int = Query(default=20, ge=1, le=100),
-#     after: str = Query(default=None),
-#     client: OpenAI = Depends(get_openai_client)
-# ):
-#     try:
-#         logger.info(f"Attempting to list assistants with limit: {limit}, after: {after}")
-#         assistants_info = await assistant_service.list_assistant_info(client, limit, after)
-#         logger.info(f"Successfully retrieved {len(assistants_info)} assistant info")
-#         return assistants_info
-#     except Exception as e:
-#         logger.error(f"Error listing assistant info: {str(e)}")
-#         logger.error(f"Error type: {type(e).__name__}")
-#         logger.error(f"Error details: {e.__dict__}")
-#         raise HTTPException(status_code=500, detail=f"Error listing assistant info: {str(e)}")
-###*******
+
+
 
 @router.post("/filter", response_model=List[AssistantResponse])
 def filter_assistants(
@@ -181,3 +130,26 @@ async def delete_assistant_route(
     except Exception as e:
         logger.error(f"Error deleting assistant: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error deleting assistant: {str(e)}")
+    
+    
+##############################################################    
+############################################################## 
+################## Para o cliente dashBoard ##################  
+##############################################################
+##############################################################    
+
+
+from app.db.cruds_operations import read_assistants
+@router.get("/assistants_all", response_model=List[Dict[str, Any]])
+async def get_all_assistants():
+    try:
+        # Fetch all assistants from the database
+        assistants = read_assistants()
+
+        return assistants
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving assistants: {str(e)}")
+    
+    
+    
+            

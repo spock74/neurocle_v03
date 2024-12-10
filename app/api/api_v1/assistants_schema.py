@@ -19,8 +19,8 @@ class AssistantCreate(BaseModel):
 
 
 class AssistantResponse(BaseModel):
-    id: str
-    # object: str = "assistant"
+    id_asst: str
+    object: str
     created_at: int
     name: str
     description: Optional[str] = None
@@ -56,6 +56,34 @@ class AssistantListParams(BaseModel):
     after: Optional[str] = None
         
     
+    
+## ===========================================================================+    
+    # Add this new schema
+class VectorStoreListResponse(BaseModel):
+    id: str
+    name: str
+    created_at: int
+    file_counts: dict
+    status: str
+    
+class FileCountsResponse(BaseModel):
+    total: int
+    completed: int
+    in_progress: int
+    failed: int
+    cancelled: int
+
+class VectorStoreResponse(BaseModel):
+    id: str
+    name: str
+    created_at: int
+    status: str
+    file_counts: FileCountsResponse
+## ===========================================================================+    
+        
+    
+    
+
 class QuestionRequest(BaseModel):
     content: str = ""
     user_id: str = ""

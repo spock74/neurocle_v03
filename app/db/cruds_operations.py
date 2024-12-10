@@ -1,11 +1,16 @@
 import sqlite3
 from datetime import datetime
+from app.core.settings.conf import logger
 
 # Função para conectar ao banco de dados
 def connect_db():
     return sqlite3.connect('neurocle_v03.db')
+# ----------------------------------------------------------------------------
+
+
 
 # Função para criar um novo usuário
+# ----------------------------------------------------------------------------
 def create_user(username, email, hashed_password):
     conn = connect_db()
     cursor = conn.cursor()
@@ -25,7 +30,11 @@ def read_users():
     conn.close()
     return users
 
+
+
+
 # Função para atualizar um usuário
+# ----------------------------------------------------------------------------
 def update_user(user_id, username=None, email=None, hashed_password=None):
     conn = connect_db()
     cursor = conn.cursor()
@@ -45,34 +54,74 @@ def delete_user(user_id):
     cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
     conn.commit()
     conn.close()
+# ------------------ CRUD USERS -----------------------------------------
+# ----------------------------------------------------------------------------
+
+
+
 
 # Função para criar um novo assistente
-def insert_assistant_in_db(id_asst:str, 
-                           name:str, 
-                           model:str, 
-                           instructions:str, 
-                           description:str, 
-                           tools:str, 
-                           metadata:str, 
-                           temperature:float, 
-                           top_p:float):
+# ----------------------------------------------------------------------------
+def insert_assistant_in_db(id_asst:str,
+                        object: str,
+                        created_at: str,
+                        name: str,
+                        description: str,
+                        model: str,
+                        instructions: str,
+                        tools: str,
+                        metadata: str,
+                        temperature: str,
+                        top_p: str
+                    ):
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO assistants_table (id_asst, name, model, instructions, description, tools, metadata, temperature, top_p)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (id_asst, name, model, instructions, description, tools, metadata, temperature, top_p))
+        INSERT INTO assistants_table (id_asst, object, created_at, name, description, model, instructions,tools, metadata, temperature, top_p)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (id_asst, object, created_at, name, description, model, instructions,tools, metadata, temperature, top_p))
     conn.commit()
+    logger.debug(f"::Zenh:: Assistant ID {id_asst} inserida no DB sqlite")
     conn.close()
+# ----------------------------------------------------------------------------
+
+
 
 # Função para ler todos os assistentes
+# ----------------------------------------------------------------------------
 def read_assistants():
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM assistants')
-    assistants = cursor.fetchall()
-    conn.close()
-    return assistants
+    try:
+        conn = connect_db()  # Establish a connection to the database
+        cursor = conn.cursor()  # Create a cursor object to interact with the database
+        cursor.execute('SELECT * FROM assistants_table')  # Execute a SQL query to select all records
+        rows = cursor.fetchall()  # Fetch all rows returned by the query
+
+        # Convert the list of tuples to a list of dictionaries
+        assistants = []
+        for row in rows:
+            assistants.append({
+                "id_asst": row[1],
+                "object": row[2],
+                "created_at": row[3],
+                "name": row[4],
+                "description": row[5],
+                "model": row[6],
+                "instructions": row[7],
+                "tools": row[8],
+                "metadata": row[9],
+                "temperature": row[10],
+                "top_p": row[11]
+            })
+
+        return assistants  # Return the list of dictionaries
+    except Exception as e:
+        print(f"Error reading assistants: {str(e)}")  # Log the error
+        return []  # Return an empty list or handle the error as needed
+    finally:
+        conn.close()  # Ensure the connection is 
+# ----------------------------------------------------------------------------
+        
+        
 
 # Função para atualizar um assistente
 def update_assistant(assistant_id, name=None, model=None, instructions=None, description=None, tools=None, metadata=None, temperature=None, top_p=None):
@@ -96,6 +145,8 @@ def update_assistant(assistant_id, name=None, model=None, instructions=None, des
         cursor.execute('UPDATE assistants SET top_p = ? WHERE id = ?', (top_p, assistant_id))
     conn.commit()
     conn.close()
+# ----------------------------------------------------------------------------
+
 
 # Função para deletar um assistente
 def delete_assistant(assistant_id):
@@ -104,6 +155,154 @@ def delete_assistant(assistant_id):
     cursor.execute('DELETE FROM assistants WHERE id = ?', (assistant_id,))
     conn.commit()
     conn.close()
+# ------------------ CRUD ASSISTANTS -----------------------------------------
+# ----------------------------------------------------------------------------
+
+
+
+
+# ----------------------------------------------------------------------------
+# ------------------ CRUD VECTOR STORES --------------------------------------
+def insert_vector_store(
+    id_vector: str,
+    name: str,
+    created_at: int,
+    status: str,
+    file_counts_total: int,
+    file_counts_completed: int,
+    file_counts_in_progress: int,
+    file_counts_failed: int,
+    file_counts_cancelled: int,
+    assistant_id: str
+):
+    """
+    Insert a new vector store into the database.
+    """
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        logger.info("Executing SQL insert for vector store")
+        cursor.execute('''
+            INSERT INTO vector_stores (
+                id_vector,
+                name,
+                created_at,
+                status,
+                file_counts_total,
+                file_counts_completed,
+                file_counts_in_progress,
+                file_counts_failed,
+                file_counts_cancelled,
+                assistant_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            id_vector,
+            name,
+            created_at,
+            status,
+            file_counts_total,
+            file_counts_completed,
+            file_counts_in_progress,
+            file_counts_failed,
+            file_counts_cancelled,
+            assistant_id
+        ))
+        conn.commit()
+        logger.info(f"Vector store {id_vector} inserted successfully")
+    except Exception as e:
+        logger.error(f"Database error during insert: {str(e)}")
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+
+
+# Função para ler todos os vector stores
+# -------------------------------------------------------------------
+def read_vector_stores():
+    """
+    Read all vector stores from the database.
+    """
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            SELECT 
+                id_vector,
+                name,
+                created_at,
+                status,
+                file_counts_total,
+                file_counts_completed,
+                file_counts_in_progress,
+                file_counts_failed,
+                file_counts_cancelled
+            FROM vector_stores
+        ''')
+        vector_stores = cursor.fetchall()
+        logger.info(f"Retrieved {len(vector_stores)} vector stores from database")
+        return vector_stores
+    except Exception as e:
+        logger.error(f"Error reading vector stores: {str(e)}")
+        raise
+    finally:
+        conn.close()
+
+
+# Função para atualizar um vector store
+# -------------------------------------------------------------------
+def update_vector_store(
+    id_vector: str,
+    name: str = None,
+    status: str = None,
+    file_counts_total: int = None,
+    file_counts_completed: int = None,
+    file_counts_in_progress: int = None,
+    file_counts_failed: int = None,
+    file_counts_cancelled: int = None
+):
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        if name:
+            cursor.execute('UPDATE vector_stores SET name = ? WHERE id_vector = ?', (name, id_vector))
+        if status:
+            cursor.execute('UPDATE vector_stores SET status = ? WHERE id_vector = ?', (status, id_vector))
+        if file_counts_total is not None:
+            cursor.execute('UPDATE vector_stores SET file_counts_total = ? WHERE id_vector = ?', (file_counts_total, id_vector))
+        if file_counts_completed is not None:
+            cursor.execute('UPDATE vector_stores SET file_counts_completed = ? WHERE id_vector = ?', (file_counts_completed, id_vector))
+        if file_counts_in_progress is not None:
+            cursor.execute('UPDATE vector_stores SET file_counts_in_progress = ? WHERE id_vector = ?', (file_counts_in_progress, id_vector))
+        if file_counts_failed is not None:
+            cursor.execute('UPDATE vector_stores SET file_counts_failed = ? WHERE id_vector = ?', (file_counts_failed, id_vector))
+        if file_counts_cancelled is not None:
+            cursor.execute('UPDATE vector_stores SET file_counts_cancelled = ? WHERE id_vector = ?', (file_counts_cancelled, id_vector))
+        conn.commit()
+    finally:
+        conn.close()
+# -------------------------------------------------------------------
+
+
+
+# Função para deletar um vector store
+# -------------------------------------------------------------------
+def delete_vector_store(id_vector: str):
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM vector_stores WHERE id_vector = ?', (id_vector,))
+        conn.commit()
+    finally:
+        conn.close()
+# --------------------------------------------------------------------
+# ------------------ FIM CRUD VECTOR STORES --------------------------
+
+
+
+
 
 # Exemplo de uso
 if __name__ == "__main__":
@@ -132,3 +331,8 @@ if __name__ == "__main__":
 
     # Deletar um assistente (supondo que o ID do assistente seja 1)
     delete_assistant(1)
+    
+    
+    
+    
+    

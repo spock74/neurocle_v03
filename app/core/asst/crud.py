@@ -63,8 +63,8 @@ def list_assistants(limit: int = 20, after: str = None):
         logger.info(f"::ZEHN:: Retrieved {len(assistants.data)} assistants")
         return [
             AssistantResponse(
-                id=assistant.id,
-                object=assistant.object,
+                id_asst=assistant.id,
+                object=assistant.to_json(),
                 created_at=assistant.created_at,
                 name=assistant.name,
                 description=assistant.description,

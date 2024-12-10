@@ -47,7 +47,8 @@ async def create_assistant(client: OpenAI, assistant_create: AssistantCreate) ->
         
         
         response = AssistantResponse(
-            id=assistant.id,
+            id_asst=assistant.id,
+            object=assistant.to_json(),
             created_at=int(assistant.created_at),
             name=assistant.name,
             description=assistant.description,
@@ -57,7 +58,6 @@ async def create_assistant(client: OpenAI, assistant_create: AssistantCreate) ->
             metadata=assistant.metadata,
             temperature=float(assistant.temperature) if assistant.temperature is not None else None,
             top_p=float(assistant.top_p) if assistant.top_p is not None else None,
-            # assistant=assistant.to_json()
         )
         logger.info(f"::ZEHN:: ==== AssistantResponse created successfully: {response}")
         return response
@@ -359,128 +359,10 @@ async def send_files_to_vector_store(client: OpenAI, vector_store_id: str, file_
             file.close()
             
             
-            
-# @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-# async def send_files_to_vector_store(client: OpenAI, vector_store_id: str, file_paths: List[str]):
-#     file_streams = []
-#     try:
-#         for path in file_paths:
-#             full_path = os.path.abspath(path)
-#             if not os.path.exists(full_path):
-#                 logger.error(f"File not found: {full_path}")
-#                 raise FileNotFoundError(f"File not found: {full_path}")
-#             file_streams.append(open(full_path, "rb"))
-        
-#         logger.info(f"Uploading files to vector store: {vector_store_id}")
-#         logger.info(f"File paths: {file_paths}")
-        
-#         file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-#             vector_store_id=vector_store_id,
-#             files=file_streams
-#         )
-#         logger.info(f"File batch uploaded successfully: {file_batch.id}")
-#         return file_batch
-#     except OpenAIError as oe:
-#         logger.error(f"OpenAI API error in send_files_to_vector_store: {str(oe)}")
-#         raise
-#     except Exception as e:
-#         logger.error(f"Unexpected error in send_files_to_vector_store: {str(e)}")
-#         raise
-#     finally:
-#         for file in file_streams:
-#             file.close()
-# @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-# async def send_files_to_vector_store(client: OpenAI, vector_store_id: str, file_paths: List[str]):
-#     file_streams = []
-#     try:
-#         for path in file_paths:
-#             if not os.path.exists(path):
-#                 logger.error(f"File not found: {path}")
-#                 raise FileNotFoundError(f"File not found: {path}")
-#             file_streams.append(open(path, "rb"))
-        
-#         logger.info(f"Uploading files to vector store: {vector_store_id}")
-#         logger.info(f"File paths: {file_paths}")
-        
-#         file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-#             vector_store_id=vector_store_id,
-#             files=file_streams
-#         )
-#         logger.info(f"File batch uploaded successfully: {file_batch.id}")
-#         return file_batch
-#     except OpenAIError as oe:
-#         logger.error(f"OpenAI API error in send_files_to_vector_store: {str(oe)}")
-#         raise
-#     except Exception as e:
-#         logger.error(f"Unexpected error in send_files_to_vector_store: {str(e)}")
-#         raise
-#     finally:
-#         for file in file_streams:
-#             file.close()
-
-
+  
 async def update_assistant_with_vector_store(client: OpenAI, assistant_id: str, vector_store_id: str):
     assistant = client.beta.assistants.update(
         assistant_id=assistant_id,
         tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
     )
     return assistant
-# def create_vector_store(client: OpenAI, assistant_id: str):
-#     try: 
-#         vector_store = client.beta.vector_stores.create(name=f"vector_store_for_asst_{assistant_id}")
-#     except OpenAIError as oe:
-#         logger.error(f"OpenAI API error: {str(oe)}")
-#         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(oe)}")     
-#     except Exception as e:
-#         logger.error(f"Unexpected error in creating vector_store: {str(e)}")
-#         raise HTTPException(status_code=500, detail=f"Error creating vector_store: {str(e)}")
-            
-#     return vector_store
-
-
-
-# def send_files_to_vector_store(client, vector_store, file_paths):
-#     # Open each file in binary mode and store the file streams in a list
-#     file_streams = [open(path, "rb") for path in file_paths]
-
-#     # Use the upload and poll SDK helper to upload the files, add them to 
-#     # the vector store, and poll the status of the file batch for completion.
-#     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-#         vector_store_id=vector_store.id, files=file_streams
-#     )
-    
-#     logger.info(f"::ZEHN:: ::zehn:: file_batch.status")
-#     logger.info(f"::ZEHN:: ::zehn:: file_batch.status: {file_batch.status}")
-#     logger.info(f"::ZEHN:: ::zehn:: file_batch.file_counts: {file_batch.file_counts}")
-#     return file_batch
-
-
-
-# # Step 3: UPDATE THE ASSISTANT to to use the new Vector Store
-# # To make the files accessible to your assistant, update the assistant’s 
-# # tool_resources with the new vector_store id.
-# # ------------------------------------------------------------------------
-# # ------------------------------------------------------------------------
-# def update_assistant_with_vector_store(client, assistant, vector_store):
-#     assistant = client.beta.assistants.update(
-#         assistant_id=assistant.id,
-#         tool_resources={"file_search": 
-#             {"vector_store_ids": 
-#                 [vector_store.id]
-#                 }
-#             },
-#     )
-# # 
-
-
-# async def insert_to_vector_storage(assistant_id: str, vector):
-#     try:
-#         # Logic to insert the vector into the vector storage
-#         vector_store = await client.beta.vector_stores.create(name=f"{assistant_id}_vector_store")
-#         await client.beta.vector_stores.file_batches.upload_and_poll(
-#             vector_store_id=vector_store.id,
-#             files=[vector]  # Assuming vector is in the correct format
-#         )
-#         return vector_store
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error inserting vector: {e}")

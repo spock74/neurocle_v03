@@ -27,16 +27,23 @@ app.middleware("http")(question_interceptor)
 origins = [
     "http://localhost:3000",  # Assuming your frontend is running on port 3000
     "http://localhost:8080",  # Add any other origins you need
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8080",
+    "http://localhost:8000",  # Add any other origins you need
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
 ]
+
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_origins=["*"],  # URL do Vite
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=origins,
