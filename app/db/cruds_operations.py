@@ -11,15 +11,45 @@ def connect_db():
 
 # Função para criar um novo usuário
 # ----------------------------------------------------------------------------
-def create_user(username, email, hashed_password):
+def get_user_by_email(email: str):
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO users (username, email, hashed_password)
-        VALUES (?, ?, ?)
-    ''', (username, email, hashed_password))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute(
+            "SELECT id, email, username, hashed_password FROM users WHERE email = ?",
+            (email,)
+        )
+        user = cursor.fetchone()
+        if user:
+            return {
+                "id": user[0],
+                "email": user[1],
+                "username": user[2],
+                "hashed_password": user[3]
+            }
+        return None
+    finally:
+        conn.close()
+
+def create_user(username: str, email: str, hashed_password: str):
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO users (username, email, hashed_password)
+            VALUES (?, ?, ?)
+            """,
+            (username, email, hashed_password)
+        )
+        conn.commit()
+        return {"username": username, "email": email}
+    except Exception as e:
+        conn.rollback()
+        raise Exception(f"Error creating user: {str(e)}")
+    finally:
+        conn.close()
+# ----------------------------------------------------------------------------        
 
 # Função para ler todos os usuários
 def read_users():
@@ -29,7 +59,86 @@ def read_users():
     users = cursor.fetchall()
     conn.close()
     return users
+# ----------------------------------------------------------------------------
+def check_users_table():
+    conn = sqlite3.connect('neurocle_v03.db')
+    cursor = conn.cursor()
+    
+    # Verificar se a tabela existe
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='users'
+    """)
+    
+    if not cursor.fetchone():
+        # Criar tabela se não existir
+        cursor.execute('''
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            hashed_password TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        conn.commit()
+        print("Table 'users' created")
+    
+    # Mostrar estrutura da tabela
+    cursor.execute("PRAGMA table_info(users)")
+    columns = cursor.fetchall()
+    print("\nTable structure:")
+    for col in columns:
+        print(col)
+    
+    # Mostrar todos os usuários
+    cursor.execute("SELECT id, username, email FROM users")
+    users = cursor.fetchall()
+    print("\nExisting users:")
+    for user in users:
+        print(user)
+    
+    conn.close()
 
+# Execute a verificação
+check_users_table()
+
+
+
+
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+def get_user_by_email(email: str):
+    """
+    Get user from database by email
+    """
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        logger.info(f"Searching for user with email: {email}")  # Debug log
+        cursor.execute(
+            "SELECT id, email, username, hashed_password FROM users WHERE email = ?", 
+            (email,)
+        )
+        user = cursor.fetchone()
+        if user:
+            logger.info("User found in database")  # Debug log
+            return {
+                "id": user[0],
+                "email": user[1],
+                "username": user[2],
+                "hashed_password": user[3]
+            }
+        logger.warning("User not found in database")  # Debug log
+        return None
+    except Exception as e:
+        logger.error(f"Database error: {str(e)}")  # Debug log
+        raise
+    finally:
+        conn.close()
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+        
 
 
 

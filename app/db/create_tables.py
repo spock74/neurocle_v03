@@ -11,7 +11,8 @@ def create_tables():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL UNIQUE,
-        hashed_password TEXT NOT NULL
+        hashed_password TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     ''')
 
@@ -67,25 +68,6 @@ def create_tables():
     );
     ''')
 
-# def drop_vector_stores_table():
-#     # Conectar ao banco de dados SQLite (ou criar se não existir)
-#     conn = sqlite3.connect('neurocle_v03.db')
-#     cursor = conn.cursor()
-
-#     try:
-#         # Drop da tabela vector_stores
-#         cursor.execute('DROP TABLE IF EXISTS vector_stores;')
-        
-#         # Commit das mudanças
-#         conn.commit()
-#         print("Tabela vector_stores removida com sucesso!")
-#     except Exception as e:
-#         print(f"Erro ao remover tabela: {e}")
-#     finally:
-#         # Fechar a conexão
-#         conn.close()
-
-# drop_vector_stores_table()
 
 
     # Criação da tabela messages

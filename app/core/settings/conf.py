@@ -87,24 +87,25 @@ def setup_logger():
 logger = setup_logger()
 
 
-class Settings:
-    """
-    Classe para armazenar as configurações do projeto.
 
-    Atributos:
-        PROJECT_NAME (str): Nome do projeto.
-        DATABASE_URL (str): URL do banco de dados.
-        ENVIRONMENT (str): Ambiente de execução (desenvolvimento, produção, etc.).
-    """
-    PROJECT_NAME: str = "My Project"
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:1234@localhost:5432/neurocurso")
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+from functools import lru_cache
 
-    def __init__(self):
-        logger.debug("Configurações carregadas: %s", self.__dict__)
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "Neurocle API"
+    SECRET_KEY: str = "your-secret-key-here"  # Em produção, use uma chave secreta segura
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # Adicionando esta configuração
+    
+    # Outras configurações existentes...
+    
+    class Config:
+        env_file = ".env"
 
-settings = Settings()
-logger.debug("Instância de Settings criada: %s", settings)
+@lru_cache()
+def get_settings():
+    return Settings()
+
+settings = get_settings()
     
 
 # -------------------------------------------------------------    

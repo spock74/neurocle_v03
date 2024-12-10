@@ -1,24 +1,35 @@
 from app.middleware.question_interceptor import question_interceptor
 from app.core.db import Base, engine
 from fastapi import FastAPI
-from app.api.api_v1.endpoints.users import router as users_router
+from app.api.api_v1.endpoints.users import router as users_router2
 from app.api.api_v1.endpoints.items import router as items_router
 from app.api.api_v1.endpoints.assistants import router as assistants_router
 from app.api.api_v1.endpoints.questions import router as question_router
 from app.api.api_v1.endpoints.vector_stores import router as vector_store_router
 from app.api.api_v1.endpoints.threads import router as thread_router
+from app.api.api_v1.endpoints.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.settings.conf import logger
-from app.db.vector_store_db import init_db  # Add this line
-from app.db.vector_store_db import init_question_log_db
+# from app.db.vector_store_db import init_question_log_db
 from app.api.api_v1.endpoints import question_audio
-
+from app.core.settings.conf import settings
+from app.core.database import init_db
+import sqlite3
 
 app = FastAPI()
 
 
-init_db()  # Add this line
-init_question_log_db()
+# init_db()  # Add this line
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on startup"""
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+        
+        
+# init_question_log_db()
 
 
 app.middleware("http")(question_interceptor)
@@ -54,12 +65,13 @@ app.add_middleware(
 
 logger.debug("CORS configurado com as origens permitidas: %s", "*")
 
+app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
 app.include_router(assistants_router, prefix="/api/v1", tags=["Assistants"])
 app.include_router(vector_store_router, prefix="/api/v1", tags=["Vector Stores"])
 app.include_router(thread_router, prefix="/api/v1", tags=["Theads"])
 app.include_router(question_router, prefix="/api/v1", tags=["Questions"])
 app.include_router(question_audio.router, prefix="/api/v1", tags=["Audio Questions"])
-app.include_router(users_router, prefix="/api/v1", tags=["Users"])
+# app.include_router(users_router2, prefix="/api/v1", tags=["Users"])
 # app.include_router(items_router, prefix="/items", tags=["items"])
 
 # Cria as tabelas no banco de dados

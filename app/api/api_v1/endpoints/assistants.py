@@ -22,6 +22,7 @@ from app.core.asst.crud import list_assistants
 import json
 import sqlite3
 
+from app.core.security import get_current_user  # 
 
 
 router = APIRouter()
@@ -118,18 +119,49 @@ async def update_assistant_route(
         raise HTTPException(status_code=500, detail=f"Error updating assistant: {str(e)}")
     
     
-    
-@router.delete("/assistant/{assistant_id}", response_model=dict)
-async def delete_assistant_route(
+@router.delete("/assistants/{assistant_id}")
+async def delete_assistant(
     assistant_id: str,
+    current_user: str = Depends(get_current_user),  # Adicionar dependência de autenticação
     client: OpenAI = Depends(get_openai_client)
 ):
+    """
+    Delete an assistant. Requires authentication.
+    """
     try:
-        await delete_assistant(client, assistant_id)
-        return {"message": f"Assistant {assistant_id} deleted successfully"}
+        logger.info(f"User {current_user} attempting to delete assistant {assistant_id}")
+        
+        # Verificar se o assistant existe
+        try:
+            assistant = client.beta.assistants.retrieve(assistant_id)
+        except Exception as e:
+            logger.error(f"Assistant {assistant_id} not found: {str(e)}")
+            raise HTTPException(status_code=404, detail=f"Assistant not found: {assistant_id}")
+
+        # Deletar o assistant
+        deleted_assistant = client.beta.assistants.delete(assistant_id)
+        
+        if deleted_assistant.deleted:
+            logger.info(f"Assistant {assistant_id} successfully deleted by user {current_user}")
+            return {"message": f"Assistant {assistant_id} deleted successfully"}
+        else:
+            logger.error(f"Failed to delete assistant {assistant_id}")
+            raise HTTPException(status_code=500, detail="Failed to delete assistant")
+            
     except Exception as e:
-        logger.error(f"Error deleting assistant: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error deleting assistant: {str(e)}")
+        logger.error(f"Error deleting assistant {assistant_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting assistant: {str(e)}")    
+# @router.delete("/assistant/{assistant_id}", response_model=dict)
+# async def delete_assistant_route(
+#     assistant_id: str,
+#     client: OpenAI = Depends(get_openai_client)
+# ):
+#     try:
+#         await delete_assistant(client, assistant_id)
+#         return {"message": f"Assistant {assistant_id} deleted successfully"}
+#     except Exception as e:
+#         logger.error(f"Error deleting assistant: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Error deleting assistant: {str(e)}")
     
     
 ##############################################################    

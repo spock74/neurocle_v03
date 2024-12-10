@@ -109,3 +109,8 @@ uvicorn
 websockets
 wheel
 yarl
+#-----------------
+pyjwt 
+passlib[bcrypt]
+python-decouple
+python-jose[cryptography]

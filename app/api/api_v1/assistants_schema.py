@@ -1,10 +1,40 @@
 import os
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, EmailStr
 from typing import List, Optional, Dict, Any
     
 
 from sqlalchemy.orm import Session
 # from app.models.assistant import Assistant
+
+
+# ====================================================
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class UserBase(BaseModel):
+    username: str
+    email: str | None = None
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+class User(BaseModel):
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
+# ====================================================
+
+
+
+
 
 class AssistantCreate(BaseModel):
     name: str
@@ -138,3 +168,5 @@ class ThreadCreate(BaseModel):
 
 class  ThreadResponse(BaseModel):
     pass
+
+

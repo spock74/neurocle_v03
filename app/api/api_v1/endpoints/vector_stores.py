@@ -247,7 +247,7 @@ async def list_vector_stores_route(
             raise ValueError("OpenAI client is not initialized")
             
         # Tentar listar as vector stores
-        try:
+        try:    
             vector_stores = client.beta.vector_stores.list()
             logger.info(f"Raw API response received with {len(vector_stores.data)} stores")
         except Exception as api_error:
