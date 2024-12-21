@@ -85,7 +85,60 @@ def create_tables():
     conn.commit()
     conn.close()
     print("Tabelas criadas com sucesso!")
+    
+    
+    
+### ================================================
+def create_questions_tables():
+    conn = sqlite3.connect('neurocle_v03.db')
+    cursor = conn.cursor()
+    
+    try:
+        # Tabela de questões
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            difficulty TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP,
+            created_by TEXT NOT NULL,
+            FOREIGN KEY (created_by) REFERENCES users(email)
+        )
+        ''')
+        
+        # Tabela de tags
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+        ''')
+        
+        # Tabela de relação questões-tags
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS question_tags (
+            question_id INTEGER,
+            tag_id INTEGER,
+            PRIMARY KEY (question_id, tag_id),
+            FOREIGN KEY (question_id) REFERENCES questions(id),
+            FOREIGN KEY (tag_id) REFERENCES tags(id)
+        )
+        ''')
+        
+        conn.commit()
+        
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
 
 # Executar a função para criar as tabelas
 if __name__ == "__main__":
     create_tables()
+    create_questions_tables()

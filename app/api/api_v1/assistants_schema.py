@@ -1,11 +1,12 @@
 import os
 from pydantic import BaseModel, Field, validator, EmailStr
 from typing import List, Optional, Dict, Any
+from datetime import datetime
     
 
 from sqlalchemy.orm import Session
 # from app.models.assistant import Assistant
-
+    
 
 # ====================================================
 class Token(BaseModel):
@@ -112,9 +113,24 @@ class VectorStoreResponse(BaseModel):
 ## ===========================================================================+    
         
     
-    
 
+
+class QuestionBase(BaseModel):
+    title: str
+    content: str
+    subject: str
+    difficulty: str
+    tags: List[str] = []
+    
+class QuestionResponse(QuestionBase):
+    id: int
+    answer: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    created_by: str
+    
 class QuestionRequest(BaseModel):
+    
     content: str = ""
     user_id: str = ""
     assistant_id: str = ""
@@ -122,11 +138,11 @@ class QuestionRequest(BaseModel):
 
 
 
-class QuestionResponse(BaseModel):
-    answer: str
-    assistant_id: str
-    user_id: str
-    thread_id: str
+# class QuestionResponse(BaseModel):
+#     answer: str
+#     assistant_id: str
+#     user_id: str
+#     thread_id: str
 
 
 

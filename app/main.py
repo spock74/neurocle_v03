@@ -8,6 +8,7 @@ from app.api.api_v1.endpoints.questions import router as question_router
 from app.api.api_v1.endpoints.vector_stores import router as vector_store_router
 from app.api.api_v1.endpoints.threads import router as thread_router
 from app.api.api_v1.endpoints.auth import router as auth_router
+from app.api.api_v1.endpoints.prompts import router as prompt_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.settings.conf import logger
 # from app.db.vector_store_db import init_question_log_db
@@ -71,7 +72,7 @@ app.include_router(vector_store_router, prefix="/api/v1", tags=["Vector Stores"]
 app.include_router(thread_router, prefix="/api/v1", tags=["Theads"])
 app.include_router(question_router, prefix="/api/v1", tags=["Questions"])
 app.include_router(question_audio.router, prefix="/api/v1", tags=["Audio Questions"])
-# app.include_router(users_router2, prefix="/api/v1", tags=["Users"])
+app.include_router(prompt_router, prefix="/api/v1", tags=["Optimizes prompt"])
 # app.include_router(items_router, prefix="/items", tags=["items"])
 
 # Cria as tabelas no banco de dados

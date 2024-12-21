@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from app.core.settings.conf import logger
+from typing import Dict, List, Optional
 
 # Função para conectar ao banco de dados
 def connect_db():
@@ -408,7 +409,146 @@ def delete_vector_store(id_vector: str):
         conn.close()
 # --------------------------------------------------------------------
 # ------------------ FIM CRUD VECTOR STORES --------------------------
+   
+# para endpoint de listar todas questoes
+## -------------------------------------------------------------------------    
+## -------------------------------------------------------------------------    
+def get_questions(
+    skip: int = 0,
+    limit: int = 10,
+    subject: Optional[str] = None,
+    difficulty: Optional[str] = None,
+    tag: Optional[str] = None
+):
+    """
+    Get questions from database with optional filtering
+    """
+    try:
+        conn = sqlite3.connect('neurocle_v03.db')
+        cursor = conn.cursor()
+        
+        # Construir query base
+        query = """
+            SELECT 
+                q.id,
+                q.title,
+                q.content,
+                q.answer,
+                q.subject,
+                q.difficulty,
+                q.created_at,
+                q.updated_at,
+                q.created_by,
+                GROUP_CONCAT(t.name) as tags
+            FROM questions q
+            LEFT JOIN question_tags qt ON q.id = qt.question_id
+            LEFT JOIN tags t ON qt.tag_id = t.id
+        """
+        
+        # Adicionar condições WHERE
+        conditions = []
+        params = []
+        
+        if subject:
+            conditions.append("q.subject = ?")
+            params.append(subject)
+            
+        if difficulty:
+            conditions.append("q.difficulty = ?")
+            params.append(difficulty)
+            
+        if tag:
+            conditions.append("t.name = ?")
+            params.append(tag)
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        # Adicionar GROUP BY, ORDER BY e LIMIT
+        query += """
+            GROUP BY q.id
+            ORDER BY q.created_at DESC
+            LIMIT ? OFFSET ?
+        """
+        params.extend([limit, skip])
+        
+        # Executar query
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        
+        # Formatar resultados
+        questions = []
+        for row in rows:
+            question = {
+                "id": row[0],
+                "title": row[1],
+                "content": row[2],
+                "answer": row[3],
+                "subject": row[4],
+                "difficulty": row[5],
+                "created_at": row[6],
+                "updated_at": row[7],
+                "created_by": row[8],
+                "tags": row[9].split(',') if row[9] else []
+            }
+            questions.append(question)
+            
+        return questions
+        
+    except Exception as e:
+        logger.error(f"Database error in get_questions: {str(e)}")
+        raise
+    finally:
+        conn.close()
 
+# ===========
+
+def create_questions_tables():
+    conn = sqlite3.connect('neurocle_v03.db')
+    cursor = conn.cursor()
+    
+    try:
+        # Tabela de questões
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            difficulty TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP,
+            created_by TEXT NOT NULL,
+            FOREIGN KEY (created_by) REFERENCES users(email)
+        )
+        ''')
+        
+        # Tabela de tags
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tags (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+        ''')
+        
+        # Tabela de relação questões-tags
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS question_tags (
+            question_id INTEGER,
+            tag_id INTEGER,
+            PRIMARY KEY (question_id, tag_id),
+            FOREIGN KEY (question_id) REFERENCES questions(id),
+            FOREIGN KEY (tag_id) REFERENCES tags(id)
+        )
+        ''')
+        
+        conn.commit()
+        
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 
@@ -441,7 +581,4 @@ if __name__ == "__main__":
     # Deletar um assistente (supondo que o ID do assistente seja 1)
     delete_assistant(1)
     
-    
-    
-    
-    
+ 
