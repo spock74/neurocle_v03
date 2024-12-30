@@ -69,3 +69,4 @@ dmypy.json
 ._*
 Pipfile.lock
 poetry.lock
+*.db
