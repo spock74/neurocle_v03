@@ -1,4 +1,3 @@
-
 import asyncio
 import os, time
 import time
@@ -106,46 +105,98 @@ async def send_question(client: OpenAI, question: QuestionRequest) -> Dict[str, 
     try:
         logger.info(f"::ZEHN:: Sending question to assistant {question.assistant_id}")
         
-        if not question.thread_id:
+        if not question.assistant_id:
+            raise HTTPException(
+                status_code=400,
+                detail="assistant_id is required"
+            )
+            
+        # Criar ou reutilizar thread
+        thread_id = question.thread_id
+        if not thread_id or thread_id.lower() == "create":
             thread = client.beta.threads.create()
             thread_id = thread.id
-        else:
-            thread_id = question.thread_id
-
-        client.beta.threads.messages.create(
-            thread_id=thread_id,
-            role="user",
-            content=question.content
-        )
-        run = client.beta.threads.runs.create(
-            thread_id=thread_id,
-            assistant_id=question.assistant_id
-        )
+            logger.info(f"Created new thread with ID: {thread_id}")
         
-        while run.status != "completed":
-            run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-            if run.status == "failed":
-                raise Exception("Run failed")
-            time.sleep(1)
+        # Criar mensagem
+        try:
+            message = client.beta.threads.messages.create(
+                thread_id=thread_id,
+                role="user",
+                content=question.content
+            )
+        except Exception as e:
+            logger.error(f"Error creating message: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating message: {str(e)}"
+            )
+            
+        # Criar e executar run
+        try:
+            run = client.beta.threads.runs.create(
+                thread_id=thread_id,
+                assistant_id=question.assistant_id
+            )
+        except Exception as e:
+            logger.error(f"Error creating run: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating run: {str(e)}"
+            )
         
+        # Aguardar conclusão do run
+        max_retries = 60  # 1 minuto com sleep de 1 segundo
+        retries = 0
+        while True:
+            run_status = client.beta.threads.runs.retrieve(
+                thread_id=thread_id,
+                run_id=run.id
+            )
+            if run_status.status == "completed":
+                break
+            elif run_status.status in ["failed", "cancelled", "expired"]:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Run failed with status: {run_status.status}"
+                )
+            await asyncio.sleep(1)
+            retries += 1
+            if retries >= max_retries:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Run timed out after 60 seconds"
+                )
+        
+        # Obter resposta
         messages = client.beta.threads.messages.list(thread_id=thread_id)
         assistant_response = messages.data[0].content[0].text.value
         
-        logger.info(f"::ZEHN:: Received response from assistant {question.assistant_id}")
+        response = {
+            "answer": assistant_response,
+            "thread_id": thread_id,
+            "assistant_id": question.assistant_id,
+            "user_id": question.user_id
+        }
         
-        response = {"answer": assistant_response, "thread_id": thread_id}
+        # Log da interação
+        insert_question_log(
+            question.assistant_id,
+            thread_id,
+            question.content,
+            question.user_id,
+            json.dumps(response)
+        )
         
-        # Insert the question log
-        from app.db.vector_store_db import insert_question_log
-        insert_question_log(question.assistant_id, thread_id, question.content, question.user_id, json.dumps(response))
-        
+        logger.info(f"::ZEHN:: Successfully processed question for assistant {question.assistant_id}")
         return response
+
     except OpenAIError as oe:
         logger.error(f"OpenAI API error in send_question: {str(oe)}")
         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(oe)}")
     except Exception as e:
         logger.error(f"Unexpected error in send_question: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error sending question: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

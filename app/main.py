@@ -16,8 +16,18 @@ from app.api.api_v1.endpoints import question_audio
 from app.core.settings.conf import settings
 from app.core.database import init_db
 import sqlite3
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
-app = FastAPI()
+app = FastAPI(
+    title="Your API",
+    description="Your API Description",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 
 # init_db()  # Add this line
@@ -79,6 +89,20 @@ app.include_router(prompt_router, prefix="/api/v1", tags=["Optimizes prompt"])
 Base.metadata.create_all(bind=engine)
 logger.debug("Tabelas criadas no banco de dados.")
 
+# Configurar o timeout do servidor
+@app.middleware("http")
+async def add_timeout_header(request, call_next):
+    response = await call_next(request)
+    response.headers["Keep-Alive"] = "timeout=300"
+    return response
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    logger.error(f"Validation error: {exc}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()}
+    )
 
 if __name__ == "__main__":
     import uvicorn

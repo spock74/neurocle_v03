@@ -87,3 +87,8 @@ configparser
 #  -e DB_POSTGRESDB_PASSWORD=<POSTGRES_PASSWORD> \
 #  -v n8n_data:/home/node/.n8n \
 #  docker.n8n.io/n8nio/n8n
+
+redis>=4.0.0
+
+gunicorn
+uvicorn[standard]

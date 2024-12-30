@@ -122,19 +122,29 @@ class QuestionBase(BaseModel):
     difficulty: str
     tags: List[str] = []
     
-class QuestionResponse(QuestionBase):
-    id: int
+class QuestionResponse(BaseModel):
     answer: str
-    created_at: datetime
-    updated_at: Optional[datetime] = None
-    created_by: str
+    thread_id: str
+    assistant_id: str
+    user_id: str
     
 class QuestionRequest(BaseModel):
-    
-    content: str = ""
-    user_id: str = ""
-    assistant_id: str = ""
-    thread_id: str = ""
+    content: str = Field(..., min_length=1)
+    user_id: str = Field(default="")
+    assistant_id: str = Field(...)
+    thread_id: str = Field(default="")
+
+    @validator('content')
+    def content_must_not_be_empty(cls, v):
+        if not v.strip():
+            raise ValueError('content cannot be empty')
+        return v
+
+    @validator('assistant_id')
+    def assistant_id_must_not_be_empty(cls, v):
+        if not v.strip():
+            raise ValueError('assistant_id cannot be empty')
+        return v
 
 
 
